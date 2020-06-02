@@ -19,6 +19,7 @@ export const postJoin = async (req, res, next) => {
 				name,
 				email,
 			});
+
 			await User.register(user, password);
 			next();
 		} catch (error) {
@@ -34,11 +35,12 @@ export const postLogin = passport.authenticate('local', {
 	successRedirect: routes.home,
 });
 
+// ===== github loggin =====
 export const githubLogin = passport.authenticate('github');
 
 export const githubLoginCallback = async (_, __, profile, cb) => {
 	const {
-		_json: { id, avatar_url, name, email },
+		_json: { id, avatar_url: avatarUrl, name, email },
 	} = profile;
 	try {
 		const user = await User.findOne({ email });
@@ -51,8 +53,9 @@ export const githubLoginCallback = async (_, __, profile, cb) => {
 			email,
 			name,
 			githubId: id,
-			avatar_url,
+			avatarUrl,
 		});
+
 		return cb(null, newUser);
 	} catch (error) {
 		return cb(error);
@@ -62,15 +65,95 @@ export const githubLoginCallback = async (_, __, profile, cb) => {
 export const postGithubLogin = (req, res) => {
 	res.redirect(routes.home);
 };
+// ===== github loggin =====
+
+// ===== facebook loggin =====
+export const facebookLogin = passport.authenticate('facebook');
+
+export const facebookLoginCallback = async (_, __, profile, cb) => {
+	const {
+		_json: { id, name, email },
+	} = profile;
+	try {
+		const user = await User.findOne({ email });
+		if (user) {
+			user.facebookId = id;
+			user.avatarUrl = `https://graph.facebook.com/${id}/picture?type=large`;
+			user.save();
+			return cb(null, user);
+		}
+		const newUser = await User.create({
+			email,
+			name,
+			facebookId: id,
+			avatarUrl: `https://graph.facebook.com/${id}/picture?type=large`,
+		});
+		return cb(null, newUser);
+	} catch (error) {
+		return cb(error);
+	}
+};
+
+export const postFacebookLogin = (req, res) => {
+	res.redirect(routes.home);
+};
+// ===== facebook loggin =====
+
+// ===== kakao loggin =====
+export const kakaoLogin = passport.authenticate('kakao');
+
+export const kakaoLoginCallback = async (_, __, profile, cb) => {
+	const {
+		id,
+		_json: {
+			properties: { nickname: name },
+			kakao_account: { email },
+		},
+	} = profile;
+	try {
+		const user = await User.findOne({ email });
+		if (user) {
+			user.kakaoId = id;
+			user.avatarUrl = '';
+			user.save();
+			return cb(null, user);
+		}
+		const newUser = await User.create({
+			kakaoId: id,
+			email,
+			name,
+			avatarUrl: '',
+		});
+		return cb(null, newUser);
+	} catch (error) {
+		return cb(error);
+	}
+};
+export const postKakaoLogin = (req, res) => {
+	res.redirect(routes.home);
+};
+// ===== kakao loggin =====
 
 export const logout = (req, res) => {
 	req.logout();
 	res.redirect(routes.home);
 };
 
-export const users = (req, res) => res.render('users', { pageTitle: 'Users' });
+export const getMe = (req, res) => {
+	res.render('userDetail', { pageTitle: 'User Detail', user: req.user });
+};
 
-export const userDetail = (req, res) => res.render('userDetail', { pageTitle: 'User Detail' });
+export const userDetail = async (req, res) => {
+	const {
+		params: { id },
+	} = req;
+	try {
+		const user = await User.findById(id);
+		res.render('userDetail', { pageTitle: 'User Detail', user });
+	} catch (error) {
+		res.redirect(routes.home);
+	}
+};
 
 export const editProfile = (req, res) => res.render('editProfile', { pageTitle: 'Edit Profile' });
 
