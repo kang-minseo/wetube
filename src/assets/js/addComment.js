@@ -3,7 +3,7 @@ import axios from 'axios';
 const addCommentsForm = document.getElementById('jsAddComment');
 const commentList = document.getElementById('jsCommentList');
 const commentNumber = document.getElementById('jsCommentNumber');
-let deleteCommentBtn = commentList.children;
+let deleteCommentBtn = commentList ? commentList.children : '';
 
 const decreaseNumber = () => {
 	commentNumber.innerHTML = parseInt(commentNumber.innerHTML, 10) - 1;

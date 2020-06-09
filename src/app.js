@@ -6,6 +6,7 @@ import bodyParser from 'body-parser';
 import passport from 'passport';
 import mongoose from 'mongoose';
 import session from 'express-session';
+import path from 'path';
 import MongoStore from 'connect-mongo';
 import { localsMiddleware } from './middlewares';
 import routes from './routes';
@@ -23,8 +24,9 @@ const CokieStore = MongoStore(session);
 // middleware
 app.use(helmet()); // 보안
 app.set('view engine', 'pug'); // 뷰 엔진 설정
+app.set('views', path.join(__dirname, 'views'));
 app.use('/uploads', express.static('uploads'));
-app.use('/static', express.static('static'));
+app.use('/static', express.static(path.join(__dirname, 'static')));
 app.use(cookieParser()); // session을 다루기 위해 cookie에 사용자 정보 저장
 app.use(bodyParser.json()); // form 데이터 가진 request object에 접근
 app.use(bodyParser.urlencoded({ extended: true }));
