@@ -8,6 +8,7 @@ const fullScreenBtn = document.getElementById('jsFullScreen');
 const currentTime = document.getElementById('currentTime');
 const totalTime = document.getElementById('totalTime');
 const volumeRange = document.getElementById('jsVolume');
+const playBar = document.getElementById('jsPlayBar');
 
 const registerView = () => {
 	const videoId = window.location.href.split('/videos/')[1];
@@ -18,6 +19,7 @@ function handlePlayClick() {
 	if (videoPlayer.paused) {
 		videoPlayer.play();
 		playBtn.innerHTML = '<i class="fas fa-pause"></i>';
+		registerView();
 	} else {
 		videoPlayer.pause();
 		playBtn.innerHTML = '<i class="fas fa-play"></i>';
@@ -90,6 +92,7 @@ const formatDate = seconds => {
 
 function getCurrentTime() {
 	currentTime.innerHTML = formatDate(Math.floor(videoPlayer.currentTime));
+	playBar.value = videoPlayer.currentTime;
 }
 
 async function setTotalTime() {
@@ -98,10 +101,12 @@ async function setTotalTime() {
 	const totalTimeString = formatDate(duration);
 	totalTime.innerHTML = totalTimeString;
 	setInterval(getCurrentTime, 1000);
+
+	playBar.max = Math.floor(duration);
 }
 
 function handleEnded() {
-	registerView();
+	// registerView();
 	videoPlayer.currentTime = 0;
 	playBtn.innerHTML = '<i class="fas fa-play"></i>';
 }
@@ -120,14 +125,23 @@ function handleDrag(event) {
 	videoPlayer.volume = value;
 }
 
+function handlePlayBar() {
+	videoPlayer.currentTime = playBar.value;
+	currentTime.innerHTML = formatDate(Math.floor(playBar.value));
+
+	videoPlayer.play();
+}
+
 function init() {
 	videoPlayer.volume = 0.5;
+	playBar.value = 0;
 	playBtn.addEventListener('click', handlePlayClick);
 	volumeBtn.addEventListener('click', handleVolumeClick);
 	fullScreenBtn.addEventListener('click', goFullScreen);
 	videoPlayer.addEventListener('loadedmetadata', setTotalTime);
 	videoPlayer.addEventListener('ended', handleEnded);
 	volumeRange.addEventListener('input', handleDrag);
+	playBar.addEventListener('click', handlePlayBar);
 }
 
 if (videoContainer) {
